@@ -214,3 +214,53 @@ def user_change_photo(telegram_id: str, current_photo_id: str, new_photo_id: str
         user_photo.photo_id = new_photo_id
         session.add(user_photo)
         session.commit()
+
+
+def get_likes_for_user(telegram_id: str) -> List[UserLike]:
+    if not is_user_exists(telegram_id):
+        raise NoResultFound(f'User {telegram_id} does not exist.')
+    
+    with Session(engine) as session:
+        query = select(UserLike).where(UserLike.user_liked_telegram_id == telegram_id)
+        return session.execute(query).scalars().all()
+
+
+def get_mutual_likes(telegram_id: str) -> List[UserLike]:
+    if not is_user_exists(telegram_id):
+        raise NoResultFound(f'User {telegram_id} does not exist.')
+    
+    with Session(engine) as session:
+        query = select(UserLike).where(
+            UserLike.user_telegram_id == telegram_id,
+            UserLike.is_mutual == True
+        )
+        return session.execute(query).scalars().all()
+
+
+def set_user_like_is_mutual(current_user_id: str, like_recieved_from_id: str, is_mutual: bool) -> None:
+    if not is_user_exists(current_user_id):
+        raise NoResultFound(f'User {current_user_id} does not exist.')
+    if not is_user_exists(like_recieved_from_id):
+        raise NoResultFound(f'User {like_recieved_from_id} does not exist.')
+    
+    with Session(engine) as session:
+        query = select(UserLike).where(
+            UserLike.user_liked_telegram_id == current_user_id,
+            UserLike.user_telegram_id == like_recieved_from_id,
+        )
+        user_like = session.execute(query).scalars().first()
+
+        if user_like is None:
+            raise ValueError('There are no such record in UserLike table.')
+        
+        user_like.is_mutual = is_mutual
+        session.add(user_like)
+        session.commit()
+
+
+def user_get_mutual_likes(telegram_id: str) -> List[UserLike]:
+    if not is_user_exists(telegram_id):
+        raise NoResultFound(f'User {telegram_id} does not exist.')
+    
+    with Session(engine) as session:
+        
