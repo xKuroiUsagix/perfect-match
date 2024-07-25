@@ -3,7 +3,12 @@ MAN = 1
 WOMEN = 2
 
 GENDER_CHOICES = {
-    'other': OTHER,
-    'man': MAN,
-    'women': WOMEN
+    'OTHER': OTHER,
+    'MAN': MAN,
+    'WOMEN': WOMEN
 }
+
+USER_MINIMUM_AGE = 16
+USER_MAXIMUM_AGE = 99
+
+PHOTO_LIMIT = 5
