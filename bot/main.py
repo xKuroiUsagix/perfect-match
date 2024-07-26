@@ -1,15 +1,14 @@
-import sys
 import asyncio
-import logging
 
 from telebot import TeleBot
-from bot_insatnce import bot
 
-from handlers.user_handlers import *
+from bot_insatnce import bot
 
 
 async def main(bot: TeleBot) -> None:
-    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    # Just to load all handlers
+    import handlers
+    
     await bot.infinity_polling()
 
 
