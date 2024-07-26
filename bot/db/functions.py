@@ -145,6 +145,17 @@ def user_set_looking_for(telegram_id: str, gender: int) -> None:
         session.commit()
 
 
+def user_set_name(telegram_id: str, name: str) -> None:
+    if not is_user_exists(telegram_id):
+        raise NoResultFound(f'User {telegram_id} does not exist.')
+    
+    with Session(engine) as session:
+        user = get_user(telegram_id)
+        user.name = name
+        session.add(user)
+        session.commit()
+
+
 def is_user_reached_photo_limit(telegram_id: str) -> bool:
     if not is_user_exists(telegram_id):
         raise NoResultFound(f'User {telegram_id} does not exist.')
@@ -256,11 +267,3 @@ def set_user_like_is_mutual(current_user_id: str, like_recieved_from_id: str, is
         user_like.is_mutual = is_mutual
         session.add(user_like)
         session.commit()
-
-
-def user_get_mutual_likes(telegram_id: str) -> List[UserLike]:
-    if not is_user_exists(telegram_id):
-        raise NoResultFound(f'User {telegram_id} does not exist.')
-    
-    with Session(engine) as session:
-        

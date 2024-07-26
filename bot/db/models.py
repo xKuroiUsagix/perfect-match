@@ -19,6 +19,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id: Mapped[str] = mapped_column(String(32), unique=True)
     chat_id: Mapped[str] = mapped_column(String(32), unique=True)
+    name: Mapped[Optional[str]] = mapped_column(String(64))
     age: Mapped[int] = mapped_column(Integer(), default=0)
     city: Mapped[Optional[str]] = mapped_column(String(64))
     gender: Mapped[int] = mapped_column(Integer(), default=OTHER)
