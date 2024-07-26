@@ -1,11 +1,11 @@
 OTHER = 0
 MAN = 1
-WOMEN = 2
+WOMAN = 2
 
 GENDER_CHOICES = {
     'OTHER': OTHER,
     'MAN': MAN,
-    'WOMEN': WOMEN
+    'WOMAN': WOMAN
 }
 
 USER_MINIMUM_AGE = 16
