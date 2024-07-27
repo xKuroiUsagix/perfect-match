@@ -23,5 +23,7 @@ def _register_message_handlers(bot: TeleBot) -> None:
 
 
 def register_handlers(bot: TeleBot) -> None:
+    # Call order is important 
+    # If put commands below messages, bot will treat commands as messagses therefore commands wont work
     _register_command_handlers(bot)
     _register_message_handlers(bot)

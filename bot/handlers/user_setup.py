@@ -15,6 +15,8 @@ from db.functions import (
     add_user_photo,
     get_user_photo_list,
     get_user,
+    get_bot_message,
+    create_bot_message
 )
 from db.constants import OTHER, MAN, WOMAN, PHOTO_LIMIT
 from bot_insatnce import bot
@@ -47,9 +49,6 @@ from keyboards import (
 )
 
 
-last_bot_message = {}
-
-
 async def proccess_new_user(message: Message) -> None:
     telegram_id = str(message.from_user.id)
     chat_id = str(message.chat.id)    
@@ -70,8 +69,9 @@ async def view_profile(message: Message):
 async def receive_photo(message: Message) -> None:
     user_id = str(message.from_user.id)
     chat_id = str(message.chat.id)
+    last_bot_message = get_bot_message(chat_id)
     
-    if last_bot_message[chat_id] == ASK_PHOTOS:
+    if last_bot_message.text == ASK_PHOTOS:
         user_photos = get_user_photo_list(user_id)
     
         if len(user_photos) == PHOTO_LIMIT:
@@ -90,20 +90,21 @@ async def receive_photo(message: Message) -> None:
 async def initial_user_setup(message: Message) -> None:
     chat_id = str(message.chat.id)
     user_id = str(message.from_user.id)
+    last_bot_message = get_bot_message(chat_id)
     
     if message.text == INITIAL_MESSAGE_RESPONSE:
         await bot.send_message(chat_id, UK_INTERNET_WARNING, reply_markup=INTERNET_WARNING_KEYBOARD)
 
     elif message.text == INTERNET_WARNING_RESPONSE:
-        last_bot_message[chat_id] = ASK_NAME_MESSAGE
+        create_bot_message(chat_id, ASK_NAME_MESSAGE)
         await bot.send_message(chat_id, ASK_NAME_MESSAGE, reply_markup=ReplyKeyboardRemove())
 
-    elif last_bot_message[chat_id] == ASK_NAME_MESSAGE:
+    elif last_bot_message.text == ASK_NAME_MESSAGE:
         set_user_name(user_id, message.text)
-        last_bot_message[chat_id] = ASK_AGE_MESSAGE
+        create_bot_message(chat_id, ASK_AGE_MESSAGE)
         await bot.send_message(chat_id, ASK_AGE_MESSAGE)
     
-    elif last_bot_message[chat_id] == ASK_AGE_MESSAGE:
+    elif last_bot_message.text == ASK_AGE_MESSAGE:
         try:
             age = int(message.text)
         except ValueError:
@@ -111,10 +112,10 @@ async def initial_user_setup(message: Message) -> None:
             return
         
         set_user_age(user_id, age)
-        last_bot_message[chat_id] = ASK_GENDER_MESSAGE
+        create_bot_message(chat_id, ASK_GENDER_MESSAGE)
         await bot.send_message(chat_id, ASK_GENDER_MESSAGE, reply_markup=GENDER_CHOICE_KEYBOARD)
     
-    elif last_bot_message[chat_id] == ASK_GENDER_MESSAGE:
+    elif last_bot_message.text == ASK_GENDER_MESSAGE:
         if message.text not in GENDER_MESSAGE_RESPONSES.values():
             await bot.send_message(chat_id, WRONG_GENDER_MESSAGE, reply_markup=GENDER_CHOICE_KEYBOARD)
             return
@@ -127,10 +128,10 @@ async def initial_user_setup(message: Message) -> None:
             gender = OTHER
         
         set_user_gender(user_id, gender)
-        last_bot_message[chat_id] = ASK_LOOKING_FOR_MESSAGE
+        create_bot_message(chat_id, ASK_LOOKING_FOR_MESSAGE)
         await bot.send_message(chat_id, ASK_LOOKING_FOR_MESSAGE, reply_markup=GENDER_CHOICE_KEYBOARD)
     
-    elif last_bot_message[chat_id] == ASK_LOOKING_FOR_MESSAGE:
+    elif last_bot_message.text == ASK_LOOKING_FOR_MESSAGE:
         if message.text not in GENDER_MESSAGE_RESPONSES.values():
             await bot.send_message(chat_id, WRONG_GENDER_MESSAGE, reply_markup=GENDER_CHOICE_KEYBOARD)
             return
@@ -143,20 +144,20 @@ async def initial_user_setup(message: Message) -> None:
             gender = OTHER
         
         set_user_looking_for(user_id, gender)
-        last_bot_message[chat_id] = ASK_CITY_MESSAGE
+        create_bot_message(chat_id, ASK_CITY_MESSAGE)
         await bot.send_message(chat_id, ASK_CITY_MESSAGE, reply_markup=ReplyKeyboardRemove())
     
-    elif last_bot_message[chat_id] == ASK_CITY_MESSAGE:
+    elif last_bot_message.text == ASK_CITY_MESSAGE:
         city = message.text.lower()
         set_user_city(user_id, city)
-        last_bot_message[chat_id] = ASK_DESCRIPTION
+        create_bot_message(chat_id, ASK_DESCRIPTION)
         await bot.send_message(chat_id, ASK_DESCRIPTION)
     
-    elif last_bot_message[chat_id] == ASK_DESCRIPTION:
+    elif last_bot_message.text == ASK_DESCRIPTION:
         set_user_description(user_id, message.text)
-        last_bot_message[chat_id] = ASK_PHOTOS
+        create_bot_message(chat_id, ASK_PHOTOS)
         await bot.send_message(chat_id, ASK_PHOTOS)
     
-    elif last_bot_message[chat_id] == ASK_PHOTOS:
+    elif last_bot_message.text == ASK_PHOTOS:
         if message.photo is None:
             await bot.send_message(chat_id, PHOTO_IS_REQUIRED)

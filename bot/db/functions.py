@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from .engine import engine
-from .models import User, UserLike, UserPhoto
+from .models import User, UserLike, UserPhoto, BotMessage
 from .constants import USER_MAXIMUM_AGE, USER_MINIMUM_AGE, PHOTO_LIMIT, GENDER_CHOICES
 
 
@@ -204,7 +204,7 @@ def get_user_photo_list(telegram_id: str) -> List[UserPhoto]:
         return session.execute(query).scalars().all()
 
 
-def user_delete_all_photos(telegram_id: str) -> None:
+def delete_all_user_photos(telegram_id: str) -> None:
     if not is_user_exists(telegram_id):
         raise NoResultFound(f'User {telegram_id} does not exist.')
 
@@ -265,3 +265,29 @@ def set_user_like_is_mutual(current_user_id: str, like_recieved_from_id: str, is
         user_like.is_mutual = is_mutual
         session.add(user_like)
         session.commit()
+
+
+def delete_bot_message(chat_id: str) -> None:
+    with Session(engine) as session:
+        query = delete(BotMessage).where(BotMessage.chat_id == chat_id)
+        session.execute(query)
+        session.commit()
+    
+
+def create_bot_message(chat_id: str, message_text: str) -> None:
+    delete_bot_message(chat_id)
+
+    with Session(engine) as session:
+        bot_message = BotMessage(
+            chat_id=chat_id,
+            text=message_text
+        )
+        session.add(bot_message)
+        session.commit()
+        return bot_message
+
+
+def get_bot_message(chat_id: str) -> Optional[BotMessage]:
+    with Session(engine) as session:
+        query = select(BotMessage).where(BotMessage.chat_id == chat_id)
+        return session.execute(query).scalar_one_or_none()
