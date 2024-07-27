@@ -204,16 +204,14 @@ def get_user_photo_list(telegram_id: str) -> List[UserPhoto]:
         return session.execute(query).scalars().all()
 
 
-def user_delete_photos(telegram_id: str, photos: List[str]) -> None:
+def user_delete_all_photos(telegram_id: str) -> None:
     if not is_user_exists(telegram_id):
         raise NoResultFound(f'User {telegram_id} does not exist.')
-    
+
     with Session(engine) as session:
-        query = delete(UserPhoto).where(
-            UserPhoto.user_telegram_id == telegram_id, 
-            UserPhoto.photo_id.in_(photos)
-        )
+        query = delete(UserPhoto).where(UserPhoto.user_telegram_id == telegram_id)
         session.execute(query)
+        session.commit()
 
 
 def user_change_photo(telegram_id: str, current_photo_id: str, new_photo_id: str) -> None:

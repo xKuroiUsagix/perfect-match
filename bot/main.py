@@ -3,12 +3,11 @@ import asyncio
 from telebot import TeleBot
 
 from bot_insatnce import bot
+from handlers.utils import register_handlers
 
 
 async def main(bot: TeleBot) -> None:
-    # Just to load all handlers
-    import handlers
-    
+    register_handlers(bot)
     await bot.infinity_polling()
 
 
