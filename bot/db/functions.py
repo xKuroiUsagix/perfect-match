@@ -81,7 +81,7 @@ def get_user_like(telegram_id: str) -> List[UserLike]:
         return session.execute(query).scalars().all()
 
 
-def user_set_age(telegram_id: str, age: int) -> None:
+def set_user_age(telegram_id: str, age: int) -> None:
     if not is_user_exists(telegram_id):
         raise NoResultFound(f'User {telegram_id} does not exist.')
     if age < USER_MINIMUM_AGE:
@@ -97,7 +97,7 @@ def user_set_age(telegram_id: str, age: int) -> None:
         session.commit()
 
 
-def user_set_description(telegram_id: str, description: str) -> None:
+def set_user_description(telegram_id: str, description: str) -> None:
     if not is_user_exists(telegram_id):
         raise NoResultFound(f'User {telegram_id} does not exist.')
     
@@ -108,7 +108,7 @@ def user_set_description(telegram_id: str, description: str) -> None:
         session.commit()
 
 
-def user_set_city(telegram_id: str, city: str) -> None:
+def set_user_city(telegram_id: str, city: str) -> None:
     if not is_user_exists(telegram_id):
         raise NoResultFound(f'User {telegram_id} does not exist.')
     
@@ -119,7 +119,7 @@ def user_set_city(telegram_id: str, city: str) -> None:
         session.commit()
 
 
-def user_set_gender(telegram_id: str, gender: int) -> None:
+def set_user_gender(telegram_id: str, gender: int) -> None:
     if gender not in GENDER_CHOICES.values():
         raise ValueError(f'Gender {gender} is not valid.')
     if not is_user_exists(telegram_id):
@@ -132,7 +132,7 @@ def user_set_gender(telegram_id: str, gender: int) -> None:
         session.commit()
 
 
-def user_set_looking_for(telegram_id: str, gender: int) -> None:
+def set_user_looking_for(telegram_id: str, gender: int) -> None:
     if gender not in GENDER_CHOICES.values():
         raise ValueError(f'Gender {gender} is not valid.')
     if not is_user_exists(telegram_id):
@@ -145,7 +145,7 @@ def user_set_looking_for(telegram_id: str, gender: int) -> None:
         session.commit()
 
 
-def user_set_name(telegram_id: str, name: str) -> None:
+def set_user_name(telegram_id: str, name: str) -> None:
     if not is_user_exists(telegram_id):
         raise NoResultFound(f'User {telegram_id} does not exist.')
     
@@ -167,7 +167,7 @@ def is_user_reached_photo_limit(telegram_id: str) -> bool:
         return result >= PHOTO_LIMIT
 
 
-def user_add_photo(telegram_id: str, photo_id: str) -> None:
+def add_user_photo(telegram_id: str, photo_id: str) -> None:
     if not is_user_exists(telegram_id):
         raise NoResultFound(f'User {telegram_id} does not exist.')
     if is_user_reached_photo_limit(telegram_id):
@@ -214,7 +214,7 @@ def user_delete_all_photos(telegram_id: str) -> None:
         session.commit()
 
 
-def user_change_photo(telegram_id: str, current_photo_id: str, new_photo_id: str) -> None:
+def change_user_photo(telegram_id: str, current_photo_id: str, new_photo_id: str) -> None:
     if not is_user_exists(telegram_id):
         raise NoResultFound(f'User {telegram_id} does not exist.')
     

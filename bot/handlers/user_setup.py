@@ -6,13 +6,13 @@ from telebot.types import (
 
 from db.functions import (
     create_user_if_not_exists,
-    user_set_age,
-    user_set_name,
-    user_set_gender,
-    user_set_looking_for,
-    user_set_city,
-    user_set_description,
-    user_add_photo,
+    set_user_age,
+    set_user_name,
+    set_user_gender,
+    set_user_looking_for,
+    set_user_city,
+    set_user_description,
+    add_user_photo,
     get_user_photo_list,
     get_user,
 )
@@ -80,7 +80,7 @@ async def receive_photo(message: Message) -> None:
             return
 
         photo_id = message.photo[0].file_id
-        user_add_photo(user_id, photo_id)
+        add_user_photo(user_id, photo_id)
 
         if len(user_photos) == 1:
             await bot.send_message(chat_id, PHOTOS_SAVED_MESSAGE)
@@ -99,7 +99,7 @@ async def initial_user_setup(message: Message) -> None:
         await bot.send_message(chat_id, ASK_NAME_MESSAGE, reply_markup=ReplyKeyboardRemove())
 
     elif last_bot_message[chat_id] == ASK_NAME_MESSAGE:
-        user_set_name(user_id, message.text)
+        set_user_name(user_id, message.text)
         last_bot_message[chat_id] = ASK_AGE_MESSAGE
         await bot.send_message(chat_id, ASK_AGE_MESSAGE)
     
@@ -110,7 +110,7 @@ async def initial_user_setup(message: Message) -> None:
             await bot.send_message(chat_id, NOT_A_NUMBER)
             return
         
-        user_set_age(user_id, age)
+        set_user_age(user_id, age)
         last_bot_message[chat_id] = ASK_GENDER_MESSAGE
         await bot.send_message(chat_id, ASK_GENDER_MESSAGE, reply_markup=GENDER_CHOICE_KEYBOARD)
     
@@ -126,7 +126,7 @@ async def initial_user_setup(message: Message) -> None:
         else:
             gender = OTHER
         
-        user_set_gender(user_id, gender)
+        set_user_gender(user_id, gender)
         last_bot_message[chat_id] = ASK_LOOKING_FOR_MESSAGE
         await bot.send_message(chat_id, ASK_LOOKING_FOR_MESSAGE, reply_markup=GENDER_CHOICE_KEYBOARD)
     
@@ -142,18 +142,18 @@ async def initial_user_setup(message: Message) -> None:
         else:
             gender = OTHER
         
-        user_set_looking_for(user_id, gender)
+        set_user_looking_for(user_id, gender)
         last_bot_message[chat_id] = ASK_CITY_MESSAGE
         await bot.send_message(chat_id, ASK_CITY_MESSAGE, reply_markup=ReplyKeyboardRemove())
     
     elif last_bot_message[chat_id] == ASK_CITY_MESSAGE:
         city = message.text.lower()
-        user_set_city(user_id, city)
+        set_user_city(user_id, city)
         last_bot_message[chat_id] = ASK_DESCRIPTION
         await bot.send_message(chat_id, ASK_DESCRIPTION)
     
     elif last_bot_message[chat_id] == ASK_DESCRIPTION:
-        user_set_description(user_id, message.text)
+        set_user_description(user_id, message.text)
         last_bot_message[chat_id] = ASK_PHOTOS
         await bot.send_message(chat_id, ASK_PHOTOS)
     
