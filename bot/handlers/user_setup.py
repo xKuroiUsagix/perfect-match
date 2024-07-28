@@ -26,7 +26,7 @@ from db.constants import (
     USER_MAXIMUM_AGE,
     STATE_START, 
     STATE_FINISH, 
-    STATE_INTENET_WARNING, 
+    STATE_INTERNET_WARNING, 
     STATE_ASK_NAME,
     STATE_ASK_AGE, 
     STATE_ASK_GENDER, 
@@ -61,7 +61,7 @@ async def handle_user_conversation(message: Message) -> None:
     
     if conversation_state == STATE_START:
         await _handle_initial_message(chat_id)
-    elif conversation_state == STATE_INTENET_WARNING:
+    elif conversation_state == STATE_INTERNET_WARNING:
         await _handle_internet_warning(chat_id)
     elif conversation_state == STATE_ASK_NAME:
         await _handle_name(chat_id, user_id, message.text)
@@ -107,9 +107,9 @@ async def view_profile(message: Message):
 
 
 async def _handle_initial_message(chat_id: str) -> None:
-    update_user_conversation_state(chat_id, STATE_INTENET_WARNING)
+    update_user_conversation_state(chat_id, STATE_INTERNET_WARNING)
 
-    response = STATE_MESSAGES.get(STATE_INTENET_WARNING)
+    response = STATE_MESSAGES.get(STATE_INTERNET_WARNING)
     await bot.send_message(chat_id, response, reply_markup=INTERNET_WARNING_KEYBOARD)
 
 
@@ -208,4 +208,3 @@ async def _handle_photos(message: Message, chat_id: str, user_id: str) -> None:
 
         response = STATE_MESSAGES.get(STATE_FINISH)
         await bot.send_message(chat_id, response)
-
