@@ -6,8 +6,21 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from .engine import engine
-from .models import User, UserLike, UserPhoto, BotMessage
+from .models import Base, User, UserLike, UserPhoto, UserConversation
 from .constants import USER_MAXIMUM_AGE, USER_MINIMUM_AGE, PHOTO_LIMIT, GENDER_CHOICES
+
+
+def get_or_create(model: Base, **kwargs) -> Base:
+    with Session(engine) as session:
+        instance = session.query(model).filter_by(**kwargs).first()
+        
+        if instance:
+            return instance
+
+        instance = model(**kwargs)
+        session.add(instance)
+        session.commit()
+        return instance
 
 
 def create_user_if_not_exists(telegram_id: str, chat_id: str) -> Optional[User]:
@@ -267,27 +280,21 @@ def set_user_like_is_mutual(current_user_id: str, like_recieved_from_id: str, is
         session.commit()
 
 
-def delete_bot_message(chat_id: str) -> None:
+def update_user_conversation_state(chat_id: str, state: int) -> None:
     with Session(engine) as session:
-        query = delete(BotMessage).where(BotMessage.chat_id == chat_id)
-        session.execute(query)
+        instance = get_or_create(UserConversation, chat_id=chat_id)
+        instance.state = state
+        session.add(instance)
         session.commit()
-    
 
-def create_bot_message(chat_id: str, message_text: str) -> None:
-    delete_bot_message(chat_id)
 
+def get_user_conversation_state(chat_id: str) -> int:
+    user_conversation = get_or_create(UserConversation, chat_id=chat_id)
+    return user_conversation.state
+
+
+def delete_user_conversation_state(chat_id: str) -> None:
     with Session(engine) as session:
-        bot_message = BotMessage(
-            chat_id=chat_id,
-            text=message_text
-        )
-        session.add(bot_message)
+        user_conversation = get_user_conversation_state(chat_id)
+        session.delete(user_conversation)
         session.commit()
-        return bot_message
-
-
-def get_bot_message(chat_id: str) -> Optional[BotMessage]:
-    with Session(engine) as session:
-        query = select(BotMessage).where(BotMessage.chat_id == chat_id)
-        return session.execute(query).scalar_one_or_none()
