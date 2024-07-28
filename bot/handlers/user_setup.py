@@ -48,7 +48,8 @@ from .messages import (
     INNAPROPRIATE_AGE, 
     TOO_MANY_PHOTOS, 
     PHOTOS_SAVED_MESSAGE,
-    ALREADY_REGISTERED_MESSAGE
+    ALREADY_REGISTERED_MESSAGE,
+    WRONG_GENDER_MESSAGE
 )
 from .helpers import get_gender
 
@@ -147,6 +148,10 @@ async def _handle_age(chat_id: str, user_id: str, age: int) -> None:
 
 
 async def _handle_gender(chat_id: str, user_id: str, gender: int) -> None:
+    if gender is None:
+        await bot.send_message(chat_id, WRONG_GENDER_MESSAGE, reply_markup=GENDER_CHOICE_KEYBOARD)
+        return
+    
     set_user_gender(user_id, gender)
     update_user_conversation_state(chat_id, STATE_ASK_LOOKING_FOR)
 
@@ -155,6 +160,10 @@ async def _handle_gender(chat_id: str, user_id: str, gender: int) -> None:
 
 
 async def _handle_looking_for(chat_id: str, user_id: str, gender: int) -> None:
+    if gender is None:
+        await bot.send_message(chat_id, WRONG_GENDER_MESSAGE, reply_markup=GENDER_CHOICE_KEYBOARD)
+        return
+
     set_user_looking_for(user_id, gender)
     update_user_conversation_state(chat_id, STATE_ASK_CITY)
     
@@ -182,11 +191,14 @@ async def _handle_photos(message: Message, chat_id: str, user_id: str) -> None:
     update_user_conversation_state(chat_id, STATE_HANDLING_PHOTOS)
     user_photos = get_user_photo_list(user_id)
     
+    if len(user_photos) >= 1 and len(message.photo) == 0:
+        update_user_conversation_state(chat_id, STATE_FINISH)
+        return
+    
     if len(user_photos) == PHOTO_LIMIT:
         update_user_conversation_state(chat_id, STATE_FINISH)
         await bot.send_message(chat_id, TOO_MANY_PHOTOS)
         return
-
     
     photo_id = message.photo[0].file_id
     add_user_photo(user_id, photo_id)
