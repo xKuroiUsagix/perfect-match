@@ -48,7 +48,7 @@ class UserPhoto(Base):
     
     id: Mapped[int] = mapped_column(primary_key=True)
     user_telegram_id: Mapped[int] = mapped_column(ForeignKey('user.telegram_id'), index=True)
-    photo_id: Mapped[int] = mapped_column(Integer(), unique=True)
+    photo_id: Mapped[str] = mapped_column(String(64), unique=True)
 
     def __repr__(self) -> str:
         return f'User {self.user_telegram_id}, Photo {self.photo_id}'
