@@ -10,17 +10,16 @@ from .models import Base, User, UserLike, UserPhoto, UserConversation
 from .constants import USER_MAXIMUM_AGE, USER_MINIMUM_AGE, PHOTO_LIMIT, GENDER_CHOICES
 
 
-def get_or_create(model: Base, **kwargs) -> Base:
-    with Session(engine) as session:
-        instance = session.query(model).filter_by(**kwargs).first()
-        
-        if instance:
-            return instance
+def get_or_create(model: Base, session, **kwargs) -> Base:
+    instance = session.query(model).filter_by(**kwargs).first()
 
-        instance = model(**kwargs)
-        session.add(instance)
-        session.commit()
+    if instance:
         return instance
+
+    instance = model(**kwargs)
+    session.add(instance)
+    session.commit()
+    return instance
 
 
 def create_user_if_not_exists(telegram_id: str, chat_id: str) -> Optional[User]:
@@ -282,19 +281,20 @@ def set_user_like_is_mutual(current_user_id: str, like_recieved_from_id: str, is
 
 def update_user_conversation_state(chat_id: str, state: int) -> None:
     with Session(engine) as session:
-        instance = get_or_create(UserConversation, chat_id=chat_id)
+        instance = get_or_create(UserConversation, session, chat_id=chat_id)
         instance.state = state
         session.add(instance)
         session.commit()
 
 
 def get_user_conversation_state(chat_id: str) -> int:
-    user_conversation = get_or_create(UserConversation, chat_id=chat_id)
-    return user_conversation.state
+    with Session(engine) as session:
+        user_conversation = get_or_create(UserConversation, session, chat_id=chat_id)
+        return user_conversation.state
 
 
 def delete_user_conversation_state(chat_id: str) -> None:
     with Session(engine) as session:
-        user_conversation = get_user_conversation_state(chat_id)
+        user_conversation = session.query(UserConversation).filter(UserConversation.chat_id == chat_id).first()
         session.delete(user_conversation)
         session.commit()
