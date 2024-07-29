@@ -1,5 +1,6 @@
 # Token
 bot/token_api.py
+sqlite.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
