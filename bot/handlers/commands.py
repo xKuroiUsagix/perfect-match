@@ -12,6 +12,11 @@ from db.constants import (
     STATE_HANDLING_PHOTOS,
     STATE_FINISH,
     STATE_START,
+    STATE_UPDATE_DESCRIPTION,
+    STATE_UPDATE_NAME,
+    STATE_UPDATE_AGE,
+    STATE_UPDATE_CITY,
+    STATE_UPDATE_PHOTOS
 )
 from bot_insatnce import bot
 from keyboards import (
@@ -48,3 +53,50 @@ async def view_profile(message: Message):
     header = f'<b>{user.name}, {user.age} | {user.city.capitalize()}</b>\n'
     photos[0].caption = f'{header}\n{user.description}'
     await bot.send_media_group(message.chat.id, photos)
+
+
+async def change_name(message: Message) -> None:
+    chat_id = message.chat.id
+
+    update_user_conversation_state(chat_id, STATE_UPDATE_NAME)
+    
+    response = STATE_MESSAGES.get(STATE_UPDATE_NAME)
+    await bot.send_message(chat_id, response)
+
+
+async def change_city(message: Message) -> None:
+    chat_id = message.chat.id
+
+    update_user_conversation_state(chat_id, STATE_UPDATE_CITY)
+    
+    response = STATE_MESSAGES.get(STATE_UPDATE_CITY)
+    await bot.send_message(chat_id, response)
+
+
+async def change_description(message: Message) -> None:
+    chat_id = message.chat.id
+
+    update_user_conversation_state(chat_id, STATE_UPDATE_DESCRIPTION)
+    
+    response = STATE_MESSAGES.get(STATE_UPDATE_DESCRIPTION)
+    await bot.send_message(chat_id, response)
+
+
+async def change_age(message: Message) -> None:
+    chat_id = message.chat.id
+
+    update_user_conversation_state(chat_id, STATE_UPDATE_AGE)
+    
+    response = STATE_MESSAGES.get(STATE_UPDATE_AGE)
+    await bot.send_message(chat_id, response)
+
+
+async def change_photos(message: Message) -> None:
+    chat_id = message.chat.id
+    user_id = message.from_user.id
+    
+    delete_all_user_photos(user_id)
+    update_user_conversation_state(chat_id, STATE_UPDATE_PHOTOS)
+    
+    response = STATE_MESSAGES.get(STATE_UPDATE_PHOTOS)
+    await bot.send_message(chat_id, response)

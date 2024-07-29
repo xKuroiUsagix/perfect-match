@@ -15,6 +15,7 @@ from db.functions import (
     update_user_conversation_state,
     delete_user_conversation_state,
     get_user_conversation_state,
+    delete_all_user_photos
 )
 from db.constants import (
     PHOTO_LIMIT, 
@@ -33,7 +34,12 @@ from db.constants import (
     STATE_ASK_CITY,
     STATE_ASK_DESCRIPTION, 
     STATE_ASK_PHOTOS, 
-    STATE_HANDLING_PHOTOS
+    STATE_HANDLING_PHOTOS,
+    STATE_UPDATE_DESCRIPTION,
+    STATE_UPDATE_NAME,
+    STATE_UPDATE_AGE,
+    STATE_UPDATE_CITY,
+    STATE_UPDATE_PHOTOS,
 )
 from bot_insatnce import bot
 from keyboards import (
@@ -51,7 +57,9 @@ from .messages import (
     INNAPROPRIATE_AGE_MESSAGE,
     TOO_LONG_NAME_MESSAGE,
     TOO_LONG_CITY_MESSAGE,
-    TOO_LONG_DESCRIPTION_MESSAGE
+    TOO_LONG_DESCRIPTION_MESSAGE,
+    UPDATE_SAVED_MESSAGE,
+    PHOTO_IS_REQUIRED
 )
 from .helpers import get_gender
 
@@ -79,6 +87,16 @@ async def handle_user_conversation(message: Message) -> None:
         await _handle_description(chat_id, user_id, message.text)
     elif conversation_state in (STATE_ASK_PHOTOS, STATE_HANDLING_PHOTOS):
         await _handle_photos(message, chat_id, user_id)
+    elif conversation_state == STATE_UPDATE_NAME:
+        await _handle_update_name(chat_id, user_id, message.text)
+    elif conversation_state == STATE_UPDATE_DESCRIPTION:
+        await _handle_update_description(chat_id, user_id, message.text)
+    elif conversation_state == STATE_UPDATE_AGE:
+        await _handle_update_age(chat_id, user_id, message.text)
+    elif conversation_state == STATE_UPDATE_CITY:
+        await _handle_update_city(chat_id, user_id, message.text.lower())
+    elif conversation_state == STATE_UPDATE_PHOTOS:
+        await _handle_update_photos(message, chat_id, user_id)
 
 
 async def _handle_initial_message(chat_id: str) -> None:
@@ -181,6 +199,10 @@ async def _handle_photos(message: Message, chat_id: str, user_id: str) -> None:
     update_user_conversation_state(chat_id, STATE_HANDLING_PHOTOS)
     user_photos = get_user_photo_list(user_id)
     
+    if len(user_photos) == 0 and message.photo is None:
+        await bot.send_message(chat_id, PHOTO_IS_REQUIRED)
+        return
+    
     if len(user_photos) >= 1 and message.photo is None:
         update_user_conversation_state(chat_id, STATE_FINISH)
         return
@@ -198,3 +220,80 @@ async def _handle_photos(message: Message, chat_id: str, user_id: str) -> None:
 
         response = STATE_MESSAGES.get(STATE_FINISH)
         await bot.send_message(chat_id, response)
+
+
+async def _handle_update_name(chat_id: str, user_id: str, name: str) -> None:
+    if len(name) > MAX_NAME_LENGTH:
+        await bot.send_message(chat_id, TOO_LONG_NAME_MESSAGE)
+        return
+
+    set_user_name(user_id, name)
+    update_user_conversation_state(chat_id, STATE_FINISH)
+
+    await bot.send_message(chat_id, UPDATE_SAVED_MESSAGE)
+
+
+async def _handle_update_description(chat_id: str, user_id: str, description: str) -> None:
+    if len(description) > MAX_DESCRIPTION_LENGTH:
+        await bot.send_message(chat_id, TOO_LONG_DESCRIPTION_MESSAGE)
+        return
+
+    set_user_description(user_id, description)
+    update_user_conversation_state(chat_id, STATE_FINISH)
+    
+    await bot.send_message(chat_id, UPDATE_SAVED_MESSAGE)
+
+
+async def _handle_update_age(chat_id: str, user_id: str, age: int) -> None:
+    try:
+        age = int(age)
+    except ValueError:
+        await bot.send_message(chat_id, NOT_A_NUMBER)
+        return
+    
+    if age < USER_MINIMUM_AGE:
+        delete_user_conversation_state(chat_id)
+        await bot.send_message(chat_id, TOO_YOUNG_MESSAGE)
+        return
+    if age > USER_MAXIMUM_AGE:
+        await bot.send_message(chat_id, INNAPROPRIATE_AGE_MESSAGE)
+        return
+    
+    set_user_age(user_id, age)
+    update_user_conversation_state(chat_id, STATE_FINISH)
+
+    await bot.send_message(chat_id, UPDATE_SAVED_MESSAGE)
+
+
+async def _handle_update_city(chat_id: str, user_id: str, city: str) -> None:
+    if len(city) > MAX_CITY_LENGTH:
+        await bot.send_message(chat_id, TOO_LONG_CITY_MESSAGE)
+        return
+
+    set_user_city(user_id, city)
+    update_user_conversation_state(chat_id, STATE_FINISH)
+    
+    await bot.send_message(chat_id, UPDATE_SAVED_MESSAGE)
+
+
+async def _handle_update_photos(message: Message, chat_id: str, user_id: str) -> None:
+    user_photos = get_user_photo_list(user_id)
+    
+    if len(user_photos) == 0 and message.photo is None:
+        await bot.send_message(chat_id, PHOTO_IS_REQUIRED)
+        return
+    
+    if len(user_photos) >= 1 and message.photo is None:
+        update_user_conversation_state(chat_id, STATE_FINISH)
+        return
+    
+    if len(user_photos) == PHOTO_LIMIT:
+        update_user_conversation_state(chat_id, STATE_FINISH)
+        await bot.send_message(chat_id, TOO_MANY_PHOTOS)
+        return
+    
+    photo_id = message.photo[0].file_id
+    add_user_photo(user_id, photo_id)
+    
+    if len(user_photos) == 1:
+        await bot.send_message(chat_id, PHOTOS_SAVED_MESSAGE)
