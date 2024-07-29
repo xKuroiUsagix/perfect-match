@@ -1,7 +1,7 @@
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
 from db.constants import MAN, WOMAN, OTHER
-from messages import (
+from handlers.messages import (
     GENDER_MESSAGE_RESPONSES, 
     INITIAL_MESSAGE_RESPONSE,
     INTERNET_WARNING_RESPONSE
