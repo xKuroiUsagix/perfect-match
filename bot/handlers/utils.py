@@ -1,14 +1,16 @@
 from telebot import TeleBot
 
 from .user_setup import (
-    handle_start,
     handle_user_conversation,
-    view_profile,
+)
+from .commands import (
+    start,
+    view_profile
 )
 
 
 def _register_command_handlers(bot: TeleBot) -> None:
-    bot.register_message_handler(handle_start, commands=['start'])
+    bot.register_message_handler(start, commands=['start'])
     bot.register_message_handler(view_profile, commands=['view_profile'])
 
 
